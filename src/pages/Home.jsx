@@ -7,7 +7,7 @@ function Home() {
   useEffect(() => {
     async function traerServicios() {
       try {
-        let { data } = await supabase.from("servicios").select("nombre");
+        let { data } = await supabase.from("servicios").select("nombre, precio");
         setServicios(data);
       } catch (error) {
         console.error(error);
@@ -20,6 +20,12 @@ function Home() {
     <>
       <h1>Home</h1>
       {console.log(servicios)}
+
+      <section>
+        {servicios.map((servicio, index) => (
+          <p key={index}>{servicio.nombre}</p>
+        ))}
+      </section>
     </>
   );
 }
