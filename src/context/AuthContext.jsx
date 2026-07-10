@@ -10,12 +10,13 @@ function AuthProvider({ children }) {
   const [perfil, setPerfil] = useState(null); //Guarda el perfil traido de la funcion traer Perfil
 
   useEffect(() => {
+    //verificar si hay una seccion activa
     async function verificarSesion() {
       const { data, error } = await supabase.auth.getSession(); //detecta el inicio de secion activa
-      setSession(data); //alamacena la secion activa
       setLoading(false);
+      setSession(data.session); //almacena la secion activa, ojo solo nos metemos al apartado de seccion del objeto de getSession
       if (error) {
-        console.log("Problemas en iniciar la secion");
+        console.log("Problemas con identificar la secion");
       } else {
         console.log("Secion identificada");
         //console.log(data);
@@ -37,39 +38,41 @@ function AuthProvider({ children }) {
   }, []);
 
   //trae el perfil del usuario de la secion activa
-useEffect(() => {
-  async function traerPerfil() {
-    try {
-      const { data } = await supabase
-        .from("perfiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single(); //Devuelve un valor unico
-      setPerfil(data);
-      if (error) {
-        console.error("Problemas en iniciar el perfil");
-      } else {
-        console.log("perfil cargado exitosamente");
+  useEffect(() => {
+    if (!session) { // verificamos si el inicio de secion tiene valor
+      return;
+    }
+    async function traerPerfil() {
+      try {
+        const { data, error } = await supabase
+          .from("perfiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single(); //Devuelve un valor unico
+        setPerfil(data);
+        if (error) {
+          console.error("Problemas en traer el perfil");
+        } else {
+          console.log("perfil cargado exitosamente");
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
+    }
+    traerPerfil();
+  }, [session]);
+
+  //Cerrar Secion
+  async function cerrarSesion() {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Problemas con cerrar sesion");
+    } else {
+      console.log("Secion Cerrada correctamente");
     }
   }
-  traerPerfil();
-}, [session]);
 
-
-async function cerrarSesion() {
-  const { error } = await supabase.auth.signOut()
-  if (error) {
-    console.error("Problemas con cerrar sesion");
-  } else {
-    console.log("Secion Cerrada exitosamente");
-  }
-}
-
-
-  const value = { session, loading };
+  const value = { session, loading, perfil, cerrarSesion };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../utils/supabase";
+import { useContext } from "react";
+import { AuthContext, AuthProvider } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+  const {perfil, cerrarSesion} =useContext(AuthContext)
   const [servicios, setServicios] = useState([]);
+  const navigate = useNavigate()
 
   useEffect(() => {
     async function traerServicios() {
@@ -16,16 +21,22 @@ function Home() {
     traerServicios();
   }, []);
 
+async function handLogOut(){
+  await cerrarSesion ()
+  navigate("/") //te redirecciona al home
+}
+
   return (
     <>
-      <h1>Home</h1>
-      {console.log(servicios)}
+      {console.log(perfil)}
+      <h1>Home {perfil ? `Bienvenido ${perfil.nombre}`: "" }</h1>
 
       <section>
         {servicios.map((servicio, index) => (
           <p key={index}>{servicio.nombre}</p>
         ))}
       </section>
+      <button onClick={cerrarSesion}>Cerrar secion</button>
     </>
   );
 }
